@@ -1,5 +1,10 @@
 import express, { Application } from "express";
 import cors from 'cors';
+import { errorHandler } from "./middleware/errorHandler";
+import { createResourceRoutes } from "./routes/resourceRoutes";
+import { resourceController } from "./config/dependencies";
+import { createStaffRoutes } from "./routes/staffRoutes";
+import { createHospitalRoutes } from "./routes/hospitalRoutes";
 
 const app: Application = express();
 
@@ -16,8 +21,10 @@ app.get('/health', (req, res) => {
     });
 });
 
-// app.use('/api/resources', resourceRoutes);
+app.use('/api/resources', createResourceRoutes(resourceController));
+app.use('/api/staff', createStaffRoutes());
+app.use('/api/hospitals', createHospitalRoutes());
 
-// app.use(errorHandler);
+app.use(errorHandler);
 
 export default app;
