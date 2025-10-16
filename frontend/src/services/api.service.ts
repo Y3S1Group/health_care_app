@@ -95,15 +95,22 @@ class ApiService {
   // Staff endpoints
   async getStaffResources(department?: string): Promise<ApiResponse<StaffResource[]>> {
     const url = department ? `/staff?department=${department}` : '/staff';
-    return this.request<StaffResource[]>('GET', url);
+    const response = await this.request<any>('GET', url);
+
+    const staffData = Array.isArray(response.data) ? response.data : response.data.staff || [];
+    return { ...response, data: staffData };
   }
 
   async getHospitals(): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>('GET', '/hospitals');
+    const response = await this.request<any>('GET', '/hospitals')
+    const hospitalsData = Array.isArray(response.data) ? response.data : response.data.hospitals || [];
+    return { ...response, data: hospitalsData };
   }
 
   async getAvailableStaff(department: string): Promise<ApiResponse<StaffResource[]>> {
-    return this.request<StaffResource[]>('GET', `/staff/available/${department}`);
+    const response = await this.request<any>('GET', '/resources/allocations');
+    const allocationsData = Array.isArray(response.data) ? response.data : response.data.allocations || [];
+    return { ...response, data: allocationsData };
   }
 }
 
