@@ -5,13 +5,8 @@ import { createResourceRoutes } from "./routes/resourceRoutes";
 import { resourceController } from "./config/dependencies";
 import { createStaffRoutes } from "./routes/staffRoutes";
 import { createHospitalRoutes } from "./routes/hospitalRoutes";
-
-// Import routes
 import roleRoutes from './routes/roleRoutes';
 import authRoutes from './routes/authRoutes';
-
-// Import middleware
-import { errorHandler } from './middleware/errorHandler';
 
 const app: Application = express();
 
