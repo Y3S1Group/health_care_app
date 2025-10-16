@@ -1,9 +1,9 @@
-import { AppError } from "./AppError";
+export class UnauthorizedError extends Error {
+  public statusCode: number;
 
-export class UnauthorizedError extends AppError {
-    statusCode = 401;
-
-    constructor(message: string = 'Unauthorized Access') {
-        super(message);
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnauthorizedError';
+    this.statusCode = 401;
+  }
 }
