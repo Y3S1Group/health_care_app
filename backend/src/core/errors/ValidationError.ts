@@ -1,9 +1,9 @@
-import { AppError } from "./AppError";
+export class ValidationError extends Error {
+  public statusCode: number;
 
-export class ValidationError extends AppError {
-    statusCode = 400;
-
-    constructor(message: string = 'Validation failed') {
-        super(message);
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+    this.statusCode = 400;
+  }
 }
