@@ -39,8 +39,8 @@ export class AuthService {
       throw new ValidationError('Email already in use');
     }
 
-    // Validate role
-    const validRoles = ['admin', 'doctor', 'nurse', 'manager', 'staff'];
+    // Validate role - Added 'patient' here
+    const validRoles = ['admin', 'doctor', 'nurse', 'manager', 'staff', 'patient'];
     if (!validRoles.includes(data.role.toLowerCase())) {
       throw new ValidationError('Invalid role');
     }

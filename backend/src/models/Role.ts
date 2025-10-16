@@ -15,7 +15,7 @@ const RoleSchema = new Schema<IRoleDocument>(
       unique: true,
       trim: true,
       lowercase: true,
-      enum: ['admin', 'doctor', 'nurse', 'manager', 'staff'],
+      enum: ['admin', 'doctor', 'nurse', 'manager', 'staff', 'patient'],
     },
     description: {
       type: String,

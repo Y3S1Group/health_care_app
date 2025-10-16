@@ -30,7 +30,7 @@ const UserSchema = new Schema<IUserDocument>(
     role: {
       type: String,
       required: true,
-      enum: ['admin', 'doctor', 'nurse', 'manager', 'staff'],
+      enum: ['admin', 'doctor', 'nurse', 'manager', 'staff', 'patient'],
       default: 'staff',
     },
   },
@@ -38,5 +38,8 @@ const UserSchema = new Schema<IUserDocument>(
     timestamps: true,
   }
 );
+
+UserSchema.index({ email: 1 });
+UserSchema.index({ role: 1 });
 
 export const UserModel = model<IUserDocument>('User', UserSchema);
