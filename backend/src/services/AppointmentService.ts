@@ -3,7 +3,6 @@ import { IPatientRepository } from '../core/interfaces/IPatientRepository';
 import { IAuditService } from '../core/interfaces/IAuditService';
 import { IAppointment } from '../models/Appointment';
 import { ValidationError } from '../core/errors/ValidationError';
-import { UnauthorizedError } from '../core/errors/UnauthorizedError';
 
 /**
  * AppointmentService - UC03 Appointment Management
@@ -59,30 +58,33 @@ export class AppointmentService {
    * Reschedule appointment
    */
   async rescheduleAppointment(
-    appointmentID: string,
-    newDateTime: Date,
-    staffID: string
-  ): Promise<IAppointment> {
-    try {
-      const appointment = await this.appointmentRepository.findByAppointmentID(appointmentID);
-      if (!appointment) {
-        throw new ValidationError(`Appointment ${appointmentID} not found`);
-      }
-
-      await appointment.rescheduleAppointment(newDateTime);
-
-      await this.auditService.log(
-        staffID,
-        'RESCHEDULE_APPOINTMENT',
-        appointmentID,
-        { oldDateTime: appointment.dateTime, newDateTime }
-      );
-
-      return appointment;
-    } catch (error) {
-      throw error;
+  appointmentID: string,
+  newDateTime: Date,
+  staffID: string
+): Promise<IAppointment> {
+  try {
+    const appointment = await this.appointmentRepository.findByAppointmentID(appointmentID);
+    if (!appointment) {
+      throw new ValidationError(`Appointment ${appointmentID} not found`);
     }
+
+    const oldDateTime = appointment.dateTime;
+
+    await appointment.rescheduleAppointment(newDateTime);
+
+    await this.auditService.log(
+      staffID,
+      'RESCHEDULE_APPOINTMENT',
+      appointmentID,
+      { oldDateTime, newDateTime }
+    );
+
+    return appointment;
+  } catch (error) {
+    throw error;
   }
+}
+
 
   /**
    * Cancel appointment
