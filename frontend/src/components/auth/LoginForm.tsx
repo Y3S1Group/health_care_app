@@ -52,16 +52,30 @@ export const LoginForm: React.FC = () => {
     setError('');
 
     try {
-      // Call your login API via AuthContext
-      const user = await login(formData);
+      await login(formData);
 
-      // Assuming your login function returns user data like:
-      // { id: '123', role: 'admin' } or { id: '124', role: 'patient' }
-
-      if (user?.role === 'admin') {
-        navigate('/admin/staff'); // redirect to Create/Manage Staff page
-      } else {
-        navigate('/resources'); // normal users go here
+      // Get user data from localStorage after successful login
+      const userStr = localStorage.getItem('auth_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        
+        // Role-based navigation using switch statement
+        switch (user.role) {
+          case 'patient':
+            navigate('/patient/dashboard', { replace: true });
+            break;
+          case 'admin':
+            navigate('/admin/staff', { replace: true });
+            break;
+          case 'doctor':
+          case 'nurse':
+          case 'manager':
+          case 'staff':
+            navigate('/patient/profile', { replace: true });
+            break;
+          default:
+            navigate('/resources', { replace: true });
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
