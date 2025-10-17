@@ -6,6 +6,7 @@ import { PatientSignup } from './pages/PatientSignup';
 import { Login } from './pages/Login';
 import { ManageStaff } from './pages/admin/ManageStaff';
 import { ManageResourceAllocation } from './pages/ManageResourceAllocation';
+import AppointmentManagement from './pages/AppointmentManagement';
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
             <Route path="/admin/staff" element={<ManageStaff />} />
             <Route path="/resources" element={<ManageResourceAllocation />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path='/appointment/*' element={<AppointmentManagement/>}/>
           </Routes>
         </BrowserRouter>
       </AuthProvider>
