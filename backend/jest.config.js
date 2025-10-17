@@ -2,7 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.ts'],
+  testMatch: ['**/tests/**/*.test.ts'],
   
   // Add this line to transform uuid
   transformIgnorePatterns: [
@@ -22,7 +22,4 @@ module.exports = {
   restoreMocks: true,
     '!src/**/index.ts'
   ],
-  
-  coverageDirectory: 'coverage',
-  verbose: true
 };

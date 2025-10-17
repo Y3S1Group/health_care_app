@@ -5,12 +5,15 @@ import { PatientSignup } from './pages/PatientSignup';
 import { Login } from './pages/Login';
 import { ManageStaff } from './pages/admin/ManageStaff';
 import { ManageResourceAllocation } from './pages/ManageResourceAllocation';
+import AppointmentManagement from './pages/AppointmentManagement';
+
 import { ManagePatientProfile } from './pages/patient/ManagePatientProfile';
 import { PatientMedicalRecords } from './pages/patient/PatientMedicalRecords';
 import { PatientDashboard } from './pages/patient/PatientDashboard';
 
 function App() {
   return (
+    <div className="min-h-screen overflow-hidden">
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -33,9 +36,11 @@ function App() {
 
           {/* Default Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path='/appointment/*' element={<AppointmentManagement/>}/>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </div>
   );
 }
 

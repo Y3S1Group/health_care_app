@@ -94,7 +94,7 @@ export const ManageResourceAllocation: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
+      <Header activeTab="resources" title="Manage Resource Allocation" />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="flex-1 overflow-auto">
