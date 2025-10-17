@@ -69,10 +69,12 @@ export const LoginForm: React.FC = () => {
             break;
           case 'doctor':
           case 'nurse':
-          case 'manager':
           case 'staff':
             navigate('/patient/profile', { replace: true });
             break;
+          case 'manager':
+            navigate('/resources/dashboard', { replace: true }); // ManageResourceAllocation page
+          break;
           default:
             navigate('/resources', { replace: true });
         }
