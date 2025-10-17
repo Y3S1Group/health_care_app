@@ -6,6 +6,7 @@ export class UserRepository implements IUserRepository {
     const doc: IUserDocument = await UserModel.create(user);
     return {
       _id: (doc._id as any).toString(),
+      userId: doc.userId,  // NEW
       name: doc.name,
       email: doc.email,
       passwordHash: doc.passwordHash,
@@ -21,6 +22,7 @@ export class UserRepository implements IUserRepository {
 
     return {
       _id: user._id.toString(),
+      userId: user.userId,  // NEW
       name: user.name,
       email: user.email,
       passwordHash: user.passwordHash,
@@ -36,6 +38,24 @@ export class UserRepository implements IUserRepository {
 
     return {
       _id: user._id.toString(),
+      userId: user.userId,  // NEW
+      name: user.name,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  // NEW METHOD
+  async findByUserId(userId: string): Promise<IUser | null> {
+    const user = await UserModel.findOne({ userId }).lean().exec();
+    if (!user) return null;
+
+    return {
+      _id: user._id.toString(),
+      userId: user.userId,
       name: user.name,
       email: user.email,
       passwordHash: user.passwordHash,

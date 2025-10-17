@@ -8,6 +8,9 @@ import { createHospitalRoutes } from "./routes/hospitalRoutes";
 import roleRoutes from './routes/roleRoutes';
 import authRoutes from './routes/authRoutes';
 import patientUpdateRoutes from './routes/patientUpdateRoutes';
+import patientProfileRoutes from './routes/patientProfileRoutes';
+import diagnosisRoutes from './routes/diagnosisRoutes';
+import prescriptionRoutes from './routes/prescriptionRoutes';
 
 const app: Application = express();
 
@@ -35,6 +38,9 @@ app.use('/api', patientUpdateRoutes);
 
 app.use('/api/roles', roleRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/patient-profiles', patientProfileRoutes);
+app.use('/api/diagnoses', diagnosisRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
