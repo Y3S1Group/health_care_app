@@ -3,12 +3,23 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: ['**/tests/**/*.test.ts'],
+  
+  // Add this line to transform uuid
+  transformIgnorePatterns: [
+    'node_modules/(?!uuid)'
+  ],
+  
   collectCoverageFrom: [
-    'src//*.ts',
-    '!src//*.d.ts',
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
     '!src/server.ts',
     '!src/app.ts',
-  ],
   coverageDirectory: 'coverage',
   verbose: true,
+  forceExit: true,
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
+    '!src/**/index.ts'
+  ],
 };
