@@ -7,6 +7,7 @@ import { createStaffRoutes } from "./routes/staffRoutes";
 import { createHospitalRoutes } from "./routes/hospitalRoutes";
 import roleRoutes from './routes/roleRoutes';
 import authRoutes from './routes/authRoutes';
+import patientUpdateRoutes from './routes/patientUpdateRoutes';
 
 const app: Application = express();
 
@@ -30,6 +31,7 @@ app.get('/health', (req, res) => {
 app.use('/api/resources', createResourceRoutes(resourceController));
 app.use('/api/staff', createStaffRoutes());
 app.use('/api/hospitals', createHospitalRoutes());
+app.use('/api', patientUpdateRoutes);
 
 app.use('/api/roles', roleRoutes);
 app.use('/api/auth', authRoutes);
