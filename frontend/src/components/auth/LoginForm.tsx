@@ -64,12 +64,12 @@ export const LoginForm: React.FC = () => {
           case 'patient':
             navigate('/patient/dashboard', { replace: true });
             break;
-          case 'admin':
-            navigate('/admin/staff', { replace: true });
+          case 'manager':
+            navigate('/resources', { replace: true });
             break;
           case 'doctor':
           case 'nurse':
-          case 'manager':
+          case 'admin':
           case 'staff':
             navigate('/patient/profile', { replace: true });
             break;
