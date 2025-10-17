@@ -3,7 +3,6 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IHealthcareManager extends Document {
     managerID: string;
     name: string;
-    departmemt: string;
 
     collectData(): Promise<any>;
     analyzeTrends(): Promise<any>;
@@ -13,15 +12,19 @@ export interface IHealthcareManager extends Document {
 }
 
 const HealthcareManagerSchema = new Schema({
-    managerID: { type: String, required: true, unique: true, uppercase: true },
-    name: { type: String, required: true },
-    department: { type: String, required: true, uppercase: true }
+    managerID: { 
+        type: String, 
+        required: true,  
+        uppercase: true,
+        unique: true
+    },
+    name: { type: String, required: true }
 }, { timestamps: true });
 
 HealthcareManagerSchema.methods.collectData = async function(): Promise<any> {
     return {
         managerID: this.managerID,
-        department: this.departmemt,
+        department: this.department,
         dataCollected: true,
         timestamp: new Date()
     };
@@ -39,9 +42,8 @@ HealthcareManagerSchema.methods.analyzeTrends = async function(): Promise<any> {
 
 HealthcareManagerSchema.methods.allocateStaff = async function (
     staffIds: string[],
-    departmemt: string
 ): Promise<void> {
-    console.log(`[Manager] ${this.managerID} allocating staff to ${departmemt}:`, staffIds);
+    console.log(`[Manager] ${this.managerID} allocating staff`, staffIds);
 };
 
 HealthcareManagerSchema.methods.generateReport = async function(reportType: string): Promise<any> {

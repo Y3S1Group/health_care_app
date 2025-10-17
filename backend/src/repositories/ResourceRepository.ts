@@ -1,6 +1,5 @@
 import { IResourceRepository } from '../core/interfaces/IResourceRepository';
 import { Resource, IResource } from '../models/Resource';
-import { v4 as uuidv4 } from 'uuid';
 
 export class ResourceRepository implements IResourceRepository {
   async findByDepartment(department: string): Promise<IResource | null> {
@@ -20,7 +19,6 @@ export class ResourceRepository implements IResourceRepository {
     }
     
     const resource = new Resource({
-      resourceID: uuidv4().toUpperCase(),
       department,
       ...data
     });

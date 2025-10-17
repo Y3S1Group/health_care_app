@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { IUserRepository } from '../core/interfaces/IUserRepository';
 import { TokenService } from './TokenService';
-import { CounterService } from './CounterService';  // NEW
+import { CounterService } from './CounterService';
 import { ValidationError } from '../core/errors/ValidationError';
 import { UnauthorizedError } from '../core/errors/UnauthorizedError';
 
@@ -20,7 +20,7 @@ export interface LoginDTO {
 export interface AuthResponse {
   user: {
     id: string;
-    userId: string;  // NEW: Include custom userId
+    userId: string;
     name: string;
     email: string;
     role: string;
@@ -29,13 +29,13 @@ export interface AuthResponse {
 }
 
 export class AuthService {
-  private counterService: CounterService;  // NEW
+  private counterService: CounterService;
 
   constructor(
     private userRepo: IUserRepository,
     private tokenService: TokenService
   ) {
-    this.counterService = new CounterService();  // NEW
+    this.counterService = new CounterService();
   }
 
   async signup(data: SignupDTO): Promise<AuthResponse> {
@@ -51,24 +51,23 @@ export class AuthService {
       throw new ValidationError('Invalid role');
     }
 
-    // Generate custom userId (choose one of the methods)
-    const userId = await this.counterService.generateUserId(data.role);  // Format: PAT-202510-0001
-    // OR
-    // const userId = await this.counterService.generateSimpleUserId(data.role);  // Format: PAT-000001
-    // OR
-    // const userId = this.counterService.generateRandomUserId(data.role);  // Format: PAT-A3X9Z
+    // Generate custom userId (e.g., MGR-202510-0001)
+    const userId = await this.counterService.generateUserId(data.role);
 
     // Hash password
     const passwordHash = await bcrypt.hash(data.password, 12);
 
-    // Create user with custom userId
+    // Create user
     const user = await this.userRepo.create({
-      userId,  // NEW: Custom ID
+      userId,
       name: data.name,
       email: data.email.toLowerCase(),
       passwordHash,
       role: data.role.toLowerCase(),
     });
+
+    // ✅ No separate manager repo logic needed
+    console.log(`✅ User created with ID ${userId} (${data.role})`);
 
     // Generate token
     const token = this.tokenService.generateToken({
@@ -80,7 +79,7 @@ export class AuthService {
     return {
       user: {
         id: user._id as string,
-        userId: user.userId,  // NEW: Include custom userId
+        userId: user.userId,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -90,19 +89,16 @@ export class AuthService {
   }
 
   async login(data: LoginDTO): Promise<AuthResponse> {
-    // Find user
     const user = await this.userRepo.findByEmail(data.email.toLowerCase());
     if (!user) {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Generate token
     const token = this.tokenService.generateToken({
       sub: user._id as string,
       email: user.email,
@@ -112,7 +108,7 @@ export class AuthService {
     return {
       user: {
         id: user._id as string,
-        userId: user.userId,  // NEW: Include custom userId
+        userId: user.userId,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -129,7 +125,7 @@ export class AuthService {
 
     return {
       id: user._id,
-      userId: user.userId,  // NEW: Include custom userId
+      userId: user.userId,
       name: user.name,
       email: user.email,
       role: user.role,

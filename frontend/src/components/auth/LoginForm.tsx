@@ -64,15 +64,15 @@ export const LoginForm: React.FC = () => {
           case 'patient':
             navigate('/patient/dashboard', { replace: true });
             break;
-          case 'manager':
-            navigate('/resources', { replace: true });
-            break;
           case 'doctor':
           case 'nurse':
           case 'admin':
           case 'staff':
             navigate('/patient/profile', { replace: true });
             break;
+          case 'manager':
+            navigate('/resources/dashboard', { replace: true }); // ManageResourceAllocation page
+          break;
           default:
             navigate('/resources', { replace: true });
         }
