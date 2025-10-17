@@ -168,4 +168,102 @@ deleteProfileByCustomUserId = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
+searchPatientByCustomId = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { patientId } = req.params;
+    const user = req.user;
+
+    if (!user) {
+      throw new Error('User authentication required');
+    }
+
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || 
+                     req.socket.remoteAddress || 
+                     'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const result = await this.patientProfileService.searchPatientByCustomId(
+      patientId,
+      {
+        staffId: user.id,
+        staffRole: user.role,
+        ipAddress,
+        userAgent,
+        sessionId: req.headers['x-session-id'] as string,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Patient profile retrieved successfully',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+updatePatientByCustomId = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { patientId } = req.params;
+    const user = req.user;
+
+    if (!user) {
+      throw new Error('User authentication required');
+    }
+
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || 
+                     req.socket.remoteAddress || 
+                     'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const updated = await this.patientProfileService.updatePatientByCustomId(
+      patientId,
+      req.body,
+      {
+        staffId: user.id,
+        staffRole: user.role,
+        ipAddress,
+        userAgent,
+        sessionId: req.headers['x-session-id'] as string,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Patient profile updated successfully',
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+getPatientAccessHistory = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { patientId } = req.params;
+    const history = await this.patientProfileService.getPatientAccessHistory(patientId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Patient access history retrieved successfully',
+      data: history,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 }

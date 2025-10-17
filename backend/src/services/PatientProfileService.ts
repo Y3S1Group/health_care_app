@@ -1,6 +1,8 @@
 import { IPatientProfileRepository } from '../core/interfaces/IPatientProfileRepository';
 import { IUserRepository } from '../core/interfaces/IUserRepository';
 import { ValidationError } from '../core/errors/ValidationError';
+import { PatientAccessService } from './PatientAccessService';
+import { PatientDataFilterService } from './PatientDataFilterService';
 
 export interface CreatePatientProfileDTO {
   userId: string;
@@ -33,14 +35,23 @@ export interface UpdatePatientProfileDTO {
   dischargeSummary?: string;
 }
 
+export interface AccessContext {
+  staffId: string;
+  staffRole: string;
+  ipAddress?: string;
+  userAgent?: string;
+  sessionId?: string;
+}
+
 export class PatientProfileService {
   constructor(
     private patientProfileRepo: IPatientProfileRepository,
-    private userRepo: IUserRepository
+    private userRepo: IUserRepository,
+    private accessService: PatientAccessService,
+    private dataFilterService: PatientDataFilterService
   ) {}
 
   async createProfile(data: CreatePatientProfileDTO) {
-    // Check if user exists and is a patient
     const user = await this.userRepo.findById(data.userId);
     if (!user) {
       throw new ValidationError('User not found');
@@ -50,13 +61,11 @@ export class PatientProfileService {
       throw new ValidationError('User must have patient role');
     }
 
-    // Check if profile already exists
     const existingProfile = await this.patientProfileRepo.findByUserId(data.userId);
     if (existingProfile) {
       throw new ValidationError('Patient profile already exists');
     }
 
-    // Calculate outstanding if billing info provided
     if (data.totalCharges !== undefined && data.paidAmount !== undefined) {
       data.outstanding = data.totalCharges - data.paidAmount;
     }
@@ -73,13 +82,11 @@ export class PatientProfileService {
   }
 
   async updateProfile(userId: string, data: UpdatePatientProfileDTO) {
-    // Check if profile exists
     const existingProfile = await this.patientProfileRepo.findByUserId(userId);
     if (!existingProfile) {
       throw new ValidationError('Patient profile not found');
     }
 
-    // Calculate outstanding if billing info updated
     const updateData = { ...data };
     if (data.totalCharges !== undefined || data.paidAmount !== undefined) {
       const totalCharges = data.totalCharges ?? existingProfile.totalCharges ?? 0;
@@ -117,55 +124,134 @@ export class PatientProfileService {
     return profile.dischargeDate !== undefined && profile.dischargeDate !== null;
   }
 
-  // ADD this method to PatientProfileService class
-async getProfileByCustomUserId(customUserId: string) {
-  // First find the user by custom userId
-  const user = await this.userRepo.findByUserId(customUserId);
-  if (!user) {
-    throw new ValidationError('User not found');
+  async searchPatientByCustomId(customUserId: string, accessContext: AccessContext) {
+    const user = await this.userRepo.findByUserId(customUserId);
+    if (!user) {
+      throw new ValidationError('Patient not found');
+    }
+
+    const profile = await this.patientProfileRepo.findByUserId(user._id as string);
+    if (!profile) {
+      throw new ValidationError('Patient profile not found');
+    }
+
+    console.log('User found:', user); // DEBUG LOG
+    console.log('Access context:', accessContext); // DEBUG LOG
+
+    const filteredData = this.dataFilterService.filterByRole(profile, accessContext.staffRole);
+
+    await this.accessService.logAccess({
+      staffId: accessContext.staffId,
+      staffRole: accessContext.staffRole,
+      patientUserId: customUserId,
+      patientMongoId: user._id as string,
+      accessType: 'view',
+      accessedFields: filteredData.allowedFields,
+      ipAddress: accessContext.ipAddress,
+      userAgent: accessContext.userAgent,
+      sessionId: accessContext.sessionId,
+    });
+
+    return {
+      patient: {
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      profile: filteredData.profile,
+      accessInfo: {
+        accessibleFields: filteredData.allowedFields,
+        restrictedFields: filteredData.deniedFields,
+        roleDescription: this.dataFilterService.getRoleAccessDescription(accessContext.staffRole),
+      },
+    };
   }
 
-  // Then get their profile using MongoDB _id
-  const profile = await this.patientProfileRepo.findByUserId(user._id as string);
-  if (!profile) {
-    throw new ValidationError('Patient profile not found');
+  async updatePatientByCustomId(
+    customUserId: string,
+    data: UpdatePatientProfileDTO,
+    accessContext: AccessContext
+  ) {
+    const user = await this.userRepo.findByUserId(customUserId);
+    if (!user) {
+      throw new ValidationError('Patient not found');
+    }
+
+    const updatedFields = Object.keys(data);
+    const accessibleFields = this.dataFilterService.getAccessibleFields(accessContext.staffRole);
+    
+    const unauthorizedFields = updatedFields.filter(
+      field => !accessibleFields.includes('*') && !accessibleFields.includes(field)
+    );
+
+    if (unauthorizedFields.length > 0) {
+      throw new ValidationError(
+        `Access denied. You cannot modify the following fields: ${unauthorizedFields.join(', ')}`
+      );
+    }
+
+    const updated = await this.updateProfile(user._id as string, data);
+
+    await this.accessService.logAccess({
+      staffId: accessContext.staffId,
+      staffRole: accessContext.staffRole,
+      patientUserId: customUserId,
+      patientMongoId: user._id as string,
+      accessType: 'update',
+      accessedFields: updatedFields,
+      ipAddress: accessContext.ipAddress,
+      userAgent: accessContext.userAgent,
+      sessionId: accessContext.sessionId,
+    });
+
+    return updated;
   }
-  return profile;
-}
 
-async updateProfileByCustomUserId(customUserId: string, data: UpdatePatientProfileDTO) {
-  // First find the user by custom userId
-  const user = await this.userRepo.findByUserId(customUserId);
-  if (!user) {
-    throw new ValidationError('User not found');
+  async getPatientAccessHistory(customUserId: string) {
+    return await this.accessService.getPatientAccessHistory(customUserId);
   }
 
-  // Then update their profile using MongoDB _id
-  return await this.updateProfile(user._id as string, data);
-}
+  async getProfileByCustomUserId(customUserId: string) {
+    const user = await this.userRepo.findByUserId(customUserId);
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
 
-async deleteProfileByCustomUserId(customUserId: string) {
-  // First find the user by custom userId
-  const user = await this.userRepo.findByUserId(customUserId);
-  if (!user) {
-    throw new ValidationError('User not found');
+    const profile = await this.patientProfileRepo.findByUserId(user._id as string);
+    if (!profile) {
+      throw new ValidationError('Patient profile not found');
+    }
+    return profile;
   }
 
-  // Then delete their profile using MongoDB _id
-  await this.deleteProfile(user._id as string);
-}
+  async updateProfileByCustomUserId(customUserId: string, data: UpdatePatientProfileDTO) {
+    const user = await this.userRepo.findByUserId(customUserId);
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
 
-async createProfileByCustomUserId(data: Omit<CreatePatientProfileDTO, 'userId'> & { userId: string }) {
-  // Find user by custom userId
-  const user = await this.userRepo.findByUserId(data.userId);
-  if (!user) {
-    throw new ValidationError('User not found');
+    return await this.updateProfile(user._id as string, data);
   }
 
-  // Create profile using MongoDB _id
-  return await this.createProfile({
-    ...data,
-    userId: user._id as string,
-  });
-}
+  async deleteProfileByCustomUserId(customUserId: string) {
+    const user = await this.userRepo.findByUserId(customUserId);
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
+
+    await this.deleteProfile(user._id as string);
+  }
+
+  async createProfileByCustomUserId(data: Omit<CreatePatientProfileDTO, 'userId'> & { userId: string }) {
+    const user = await this.userRepo.findByUserId(data.userId);
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
+
+    return await this.createProfile({
+      ...data,
+      userId: user._id as string,
+    });
+  }
 }

@@ -2,7 +2,10 @@ import { Router } from 'express';
 import { PatientProfileController } from '../controllers/PatientProfileController';
 import { PatientProfileRepository } from '../repositories/PatientProfileRepository';
 import { UserRepository } from '../repositories/UserRepository';
+import { PatientAccessLogRepository } from '../repositories/PatientAccessLogRepository';
 import { PatientProfileService } from '../services/PatientProfileService';
+import { PatientAccessService } from '../services/PatientAccessService';
+import { PatientDataFilterService } from '../services/PatientDataFilterService';
 import { validate } from '../middleware/validator';
 import { createPatientProfileSchema, updatePatientProfileSchema } from '../validators/patientProfileSchemas';
 import { auth } from '../middleware/auth';
@@ -10,11 +13,43 @@ import { requireRole } from '../middleware/rbac';
 
 const router = Router();
 
-// Setup dependencies
 const patientProfileRepo = new PatientProfileRepository();
 const userRepo = new UserRepository();
-const patientProfileService = new PatientProfileService(patientProfileRepo, userRepo);
+const accessLogRepo = new PatientAccessLogRepository();
+
+const accessService = new PatientAccessService(accessLogRepo);
+const dataFilterService = new PatientDataFilterService();
+const patientProfileService = new PatientProfileService(
+  patientProfileRepo,
+  userRepo,
+  accessService,
+  dataFilterService
+);
+
 const patientProfileController = new PatientProfileController(patientProfileService);
+
+
+router.get(
+  '/search/:patientId',
+  auth,
+  requireRole(['admin', 'doctor', 'nurse', 'staff', 'manager']),
+  patientProfileController.searchPatientByCustomId
+);
+
+router.put(
+  '/search/:patientId',
+  auth,
+  requireRole(['admin', 'doctor', 'nurse']),
+  validate(updatePatientProfileSchema),
+  patientProfileController.updatePatientByCustomId
+);
+
+router.get(
+  '/access-history/:patientId',
+  auth,
+  requireRole(['admin', 'doctor']),
+  patientProfileController.getPatientAccessHistory
+);
 
 // ===== NEW ROUTES USING CUSTOM USER ID =====
 
