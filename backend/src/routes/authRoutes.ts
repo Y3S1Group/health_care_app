@@ -6,6 +6,8 @@ import { AuthService } from '../services/AuthService';
 import { validate } from '../middleware/validator';
 import { signupSchema, loginSchema } from '../validators/authSchemas';
 import { auth } from '../middleware/auth';
+import { HealthcareManagerRepository } from '../repositories/HealthcareManagerRepository';
+
 
 const router = Router();
 

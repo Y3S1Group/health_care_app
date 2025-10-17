@@ -9,9 +9,11 @@
     "test": "jest --coverage --detectOpenHandles",
     "test:watch": "jest --watch",
     "test:unit": "jest tests/unit",
+    "test:coverage": "jest --coverage",
     "test:integration": "jest tests/integration",
     "clean": "rm -rf dist coverage logs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:manager": "ts-node --project tsconfig.json scripts/addManager.ts"
   },
   "keywords": [],
   "author": "",

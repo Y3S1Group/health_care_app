@@ -65,3 +65,5 @@ export class UserRepository implements IUserRepository {
     };
   }
 }
+
+export default UserRepository;

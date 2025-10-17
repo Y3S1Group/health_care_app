@@ -29,7 +29,7 @@ function App() {
           <Route path="/patient/dashboard" element={<PatientDashboard />} />
 
           {/* Other Routes */}
-          <Route path="/resources" element={<ManageResourceAllocation />} />
+          <Route path="/resources/*" element={<ManageResourceAllocation />} />
 
           {/* Default Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />
