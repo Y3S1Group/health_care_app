@@ -4,12 +4,47 @@ import { Navigation } from '../components/layout/Navigation';
 import { Footer } from '../components/layout/Footer';
 import { ResourceUtilizationTab } from '../components/ResourceUtilizationTab';
 import { AllocationPlanTab } from '../components/AllocationPlanTab';
-//import { PatientFlowTab } from '../components/PatientFlowTab';
 import { useResourceAllocation } from '../hooks/useResourceAllocation';
+import { useAuth } from '../context/AuthContext';
 
 export const ManageResourceAllocation: React.FC = () => {
   const [activeTab, setActiveTab] = useState('resource-utilization');
-  const managerID = 'MGR001';
+  const { user } = useAuth();
+  
+  // Use the logged-in user's userId instead of hardcoded 'MGR001'
+  const managerID = user?.userId || '';
+
+  // Add guard clauses for security and UX
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-xl text-gray-600">Please log in to continue</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role !== 'manager') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-xl text-red-600">Access Denied</p>
+          <p className="text-gray-600 mt-2">This page is only accessible to managers</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!managerID) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-xl text-gray-600">Loading user information...</p>
+        </div>
+      </div>
+    );
+  }
 
   const {
     loading,
@@ -30,17 +65,17 @@ export const ManageResourceAllocation: React.FC = () => {
   } = useResourceAllocation(managerID);
 
   const handleAllocate = async (formData: any) => {
-  try {
-    const allocation = await allocateResources(formData);
-    
-    alert(`Resources allocated successfully!\n\nAllocation ID: ${allocation.allocation.allocationID}\nDepartment: ${allocation.allocation.department}\nStaff: ${allocation.allocation.staffIds.length} members\nBeds: ${allocation.allocation.bedCount}`);
-    
-    setActiveTab('resource-utilization');
-  } catch (err) {
-    console.error('Allocation failed:', err);
-    alert('Failed to allocate resources. Please try again.');
-  }
-};
+    try {
+      const allocation = await allocateResources(formData);
+      
+      alert(`Resources allocated successfully!\n\nAllocation ID: ${allocation.allocation.allocationID}\nDepartment: ${allocation.allocation.department}\nStaff: ${allocation.allocation.staffIds.length} members\nBeds: ${allocation.allocation.bedCount}`);
+      
+      setActiveTab('resource-utilization');
+    } catch (err) {
+      console.error('Allocation failed:', err);
+      alert('Failed to allocate resources. Please try again.');
+    }
+  };
 
   const handleDetectShortages = async () => {
     try {
@@ -63,6 +98,13 @@ export const ManageResourceAllocation: React.FC = () => {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="flex-1 overflow-auto">
+        {/* Display manager info for debugging */}
+        <div className="mx-6 mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
+          <p className="text-sm text-blue-800">
+            Logged in as: <strong>{user.name}</strong> | Manager ID: <strong>{managerID}</strong>
+          </p>
+        </div>
+
         {error && (
           <div className="mx-6 mt-6 bg-red-50 border border-red-200 rounded-md p-4">
             <div className="flex items-start">
@@ -70,18 +112,10 @@ export const ManageResourceAllocation: React.FC = () => {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               <p className="ml-3 text-sm text-red-800">{error}</p>
-              <button onClick={clearError} className="ml-auto text-red-500">×</button>
+              <button onClick={clearError} className="ml-auto text-red-500 hover:text-red-700 font-bold text-xl">×</button>
             </div>
           </div>
         )}
-
-        {/* {activeTab === 'patient-flow' && (
-          <PatientFlowTab 
-            data={patientFlow} 
-            loading={loading}
-            onDetectShortages={handleDetectShortages}
-          />
-        )} */}
 
         {activeTab === 'resource-utilization' && (
           <ResourceUtilizationTab 
