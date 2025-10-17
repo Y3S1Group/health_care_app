@@ -12,11 +12,23 @@ export interface IHospital extends Document {
 }
 
 const HospitalSchema = new Schema<IHospital>({
-    hospitalID: { type: String, required: true, unique: true, uppercase: true },
+    hospitalID: { 
+        type: String, 
+        required: true, 
+        uppercase: true
+    },
     name: { type: String, required: true },
     location: { type: String, required: true },
     type: { type: String, required: true }
 }, { timestamps: true});
+
+HospitalSchema.pre('save', async function(next) {
+    if (!this.hospitalID) {
+        const count = await mongoose.model('Hospital').countDocuments();
+        this.hospitalID = `HOSP${String(count + 1).padStart(3, '0')}`;
+    }
+    next();
+});
 
 HospitalSchema.methods.registerHospital = async function(): Promise<void> {
     console.log(`[Hospital] Registering: ${this.name}`);
@@ -31,4 +43,4 @@ HospitalSchema.methods.assignStaff = async function(staffId: string): Promise<vo
     console.log(`[Hospital] Assign staff ${staffId} to ${this.hospitalID}`);
 }
 
-export const Hospital = mongoose.model<IHospital>('Hosptial', HospitalSchema);
+export const Hospital = mongoose.model<IHospital>('Hospital', HospitalSchema);

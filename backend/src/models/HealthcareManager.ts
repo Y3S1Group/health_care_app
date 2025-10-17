@@ -13,7 +13,12 @@ export interface IHealthcareManager extends Document {
 }
 
 const HealthcareManagerSchema = new Schema({
-    managerID: { type: String, required: true, unique: true, uppercase: true },
+    managerID: { 
+        type: String, 
+        required: true,  
+        uppercase: true,
+        
+    },
     name: { type: String, required: true },
     department: { type: String, required: true, uppercase: true }
 }, { timestamps: true });
